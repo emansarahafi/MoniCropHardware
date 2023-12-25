@@ -75,8 +75,8 @@ def telegram(notification):
        print("Client Created")
        me = await client.get_me()
 
-       my_channel = await client.get_entity('MoniCropData')
-       messages = await client.send_message('MoniCropData', message=notification)
+       my_channel = await client.get_entity('INSERT_CHAT_ID_HERE')
+       messages = await client.send_message('INSERT_CHAT_ID_HERE', message=notification)
 
    with client:
        client.loop.run_until_complete(main(phone))
