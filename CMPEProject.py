@@ -10,11 +10,15 @@ import firebase_admin
 import telebot
 import configparser
 import asyncio
+from dotenv import load_dotenv
 from telethon.sync import TelegramClient  
 from telethon.tl.types import InputPeerUser, InputPeerChannel  
 from telethon import TelegramClient, sync, events
 from google.cloud import firestore
 from firebase_admin import credentials, auth
+
+# Load environment variables from .env file
+load_dotenv()
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
@@ -30,22 +34,24 @@ GPIO.setup(ECHO, GPIO.IN)
 g = geocoder.ip('me')
 
 # Initialize Firestore client
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/home/emanpi/Desktop/serviceAccountKey.json"
+GOOGLE_CREDS_PATH = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GOOGLE_CREDS_PATH
 db = firestore.Client()
 
 # Fetch the service account key JSON file path
-cred = credentials.Certificate("/home/emanpi/Desktop/serviceAccountKey.json")
+cred = credentials.Certificate(GOOGLE_CREDS_PATH)
 
 # Initialize the app
 firebase_admin.initialize_app(cred)
 
 # Set the API endpoint
-auth_url = 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=INSERT_API_KEY_HERE'
+FIREBASE_API_KEY = os.getenv('FIREBASE_API_KEY')
+auth_url = f'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={FIREBASE_API_KEY}'
 
 # Set the request body
 data = {
-    "email": "john.doe@example.com",
-    "password": "123",
+    "email": os.getenv('FIREBASE_EMAIL'),
+    "password": os.getenv('FIREBASE_PASSWORD'),
     "returnSecureToken": True
 }
 
@@ -54,18 +60,12 @@ response = requests.post(auth_url, data=json.dumps(data))
 
 # Create function to extract data from Telegram channel
 def telegram(notification):
-   # Reading Configs
-   config = configparser.ConfigParser()
-   config.read("/home/emanpi/Desktop/config.ini")
-
-   # Setting configuration values
-   api_id = config['Telegram']['api_id']
-   api_hash = config['Telegram']['api_hash']
-
-   api_hash = str(api_hash)
-
-   phone = config['Telegram']['phone']
-   username = config['Telegram']['username']
+   # Get Telegram configuration from environment variables
+   api_id = os.getenv('TELEGRAM_API_ID')
+   api_hash = os.getenv('TELEGRAM_API_HASH')
+   phone = os.getenv('TELEGRAM_PHONE')
+   username = os.getenv('TELEGRAM_USERNAME')
+   chat_id = os.getenv('TELEGRAM_CHAT_ID')
 
    # Create the client and connect
    client = TelegramClient(username, api_id, api_hash)
@@ -75,14 +75,16 @@ def telegram(notification):
        print("Client Created")
        me = await client.get_me()
 
-       my_channel = await client.get_entity('INSERT_CHAT_ID_HERE')
-       messages = await client.send_message('INSERT_CHAT_ID_HERE', message=notification)
+       my_channel = await client.get_entity(chat_id)
+       messages = await client.send_message(chat_id, message=notification)
 
    with client:
        client.loop.run_until_complete(main(phone))
 
 # NPK sensor being set up
-uart0 = serial.Serial(port='/dev/ttyUSB1', baudrate=4600, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS, timeout=1)
+SERIAL_PORT = os.getenv('SERIAL_PORT', '/dev/ttyUSB1')
+SERIAL_BAUDRATE = int(os.getenv('SERIAL_BAUDRATE', '4600'))
+uart0 = serial.Serial(port=SERIAL_PORT, baudrate=SERIAL_BAUDRATE, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS, timeout=1)
 
 temp = bytes.fromhex('01 03 00 13 00 01 75 cf')
 moist = bytes.fromhex('01 03 00 12 00 01 24 0F')
@@ -176,8 +178,9 @@ def potassium():
         print("Data Didn't Transmit")
 
 # Define the ID for the location and the plant
-location_id = "ABC123"
-plant_id = "XYZ789"
+location_id = os.getenv('LOCATION_ID', 'ABC123')
+plant_id = os.getenv('PLANT_ID', 'XYZ789')
+fruit_type = os.getenv('FRUIT_TYPE', 'mango')
 
 # Define a variable to store the previous distance value
 prev_D = 0
@@ -276,7 +279,7 @@ while True:
             "Location": city,
             "Location ID": location_id,
             "id": plant_id,
-            "fruit": "mango",
+            "fruit": fruit_type,
             "pH": avg_pH,
             "Conductivity": avg_C,
             "Temperature": avg_T,

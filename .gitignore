@@ -144,6 +144,10 @@ ENV/
 env.bak/
 venv.bak/
 
+# Arduino/ESP32 config files
+wififile/config.h
+config.h
+
 # Spyder project settings
 .spyderproject
 .spyproject

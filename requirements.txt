@@ -1,0 +1,9 @@
+python-dotenv
+RPi.GPIO
+pyserial
+geocoder
+requests
+firebase-admin
+pyTelegramBotAPI
+telethon
+google-cloud-firestore
