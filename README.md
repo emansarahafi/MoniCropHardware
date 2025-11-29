@@ -140,7 +140,7 @@ The system will:
 
 This website is part of the **MoniCrop Smart Crop Monitoring System**:
 
-- **[MoniCrop Website](https://github.com/emansarahafi/MoniCropHardware)** - IoT sensors and hardware components
+- **[MoniCrop Website](https://github.com/emansarahafi/MoniCropWebsite)** - Functional Website
 - **[MoniCrop iOS App](https://github.com/emansarahafi/MoniCropiOS)** - Mobile application for iOS
 
 ## Citation
